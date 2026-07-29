@@ -1,0 +1,8 @@
+{
+	"nodes":[
+		{"id":"146229d39419f80c","type":"file","file":"Example Cards/habit1-month.md","x":-360,"y":-600,"width":500,"height":680},
+		{"id":"2ef737cbf5bfc1a4","type":"file","file":"Example Cards/habit2-year.md","x":180,"y":-600,"width":1060,"height":1060},
+		{"id":"1712c77f422f74ec","type":"file","file":"Example Cards/habit3-heatmap.md","x":-920,"y":120,"width":1060,"height":440}
+	],
+	"edges":[]
+}

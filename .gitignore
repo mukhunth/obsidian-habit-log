@@ -1,0 +1,15 @@
+# Ignore user-specific layout and tab state
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Temp scripts
+_*

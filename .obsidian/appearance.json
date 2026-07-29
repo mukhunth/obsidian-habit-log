@@ -1,0 +1,14 @@
+{
+  "theme": "obsidian",
+  "cssTheme": "Minimal",
+  "accentColor": "",
+  "showViewHeader": true,
+  "showRibbon": false,
+  "interfaceFontFamily": "",
+  "enabledCssSnippets": [
+    "hide",
+    "canvas-tweaks"
+  ],
+  "translucency": false,
+  "nativeMenus": true
+}
