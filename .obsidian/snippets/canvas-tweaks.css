@@ -1,34 +1,48 @@
 /* 1. Nuke padding, margins, and width limits ONLY for Canvas cards containing the habit tracker */
 .canvas-node:has(.wrapper) .canvas-node-container,
+.canvas-node:has(.combined-habits-wrapper) .canvas-node-container,
 .canvas-node:has(.wrapper) .canvas-node-content,
+.canvas-node:has(.combined-habits-wrapper) .canvas-node-content,
 .canvas-node:has(.wrapper) .markdown-embed-content,
+.canvas-node:has(.combined-habits-wrapper) .markdown-embed-content,
 .canvas-node:has(.wrapper) .markdown-preview-view,
+.canvas-node:has(.combined-habits-wrapper) .markdown-preview-view,
 .canvas-node:has(.wrapper) .markdown-preview-sizer,
-.canvas-node:has(.wrapper) .markdown-rendered {
+.canvas-node:has(.combined-habits-wrapper) .markdown-preview-sizer,
+.canvas-node:has(.wrapper) .markdown-rendered,
+.canvas-node:has(.combined-habits-wrapper) .markdown-rendered {
     padding: 0px !important;
     margin: 0px !important;
-    max-width: none !important; 
+    max-width: none !important;
     width: 100% !important;
 }
 
 /* 2. THE MAC FIX: Completely destroy the hidden scrollbar track for tracker cards only */
 .canvas-node:has(.wrapper) .canvas-node-content::-webkit-scrollbar,
+.canvas-node:has(.combined-habits-wrapper) .canvas-node-content::-webkit-scrollbar,
 .canvas-node:has(.wrapper) .markdown-embed-content::-webkit-scrollbar,
+.canvas-node:has(.combined-habits-wrapper) .markdown-embed-content::-webkit-scrollbar,
 .canvas-node:has(.wrapper) .markdown-preview-view::-webkit-scrollbar,
-.canvas-node:has(.wrapper) .markdown-rendered::-webkit-scrollbar {
+.canvas-node:has(.combined-habits-wrapper) .markdown-preview-view::-webkit-scrollbar,
+.canvas-node:has(.wrapper) .markdown-rendered::-webkit-scrollbar,
+.canvas-node:has(.combined-habits-wrapper) .markdown-rendered::-webkit-scrollbar {
     display: none !important;
     width: 0px !important;
     background: transparent !important;
 }
 
 .canvas-node:has(.wrapper) .canvas-node-content,
+.canvas-node:has(.combined-habits-wrapper) .canvas-node-content,
 .canvas-node:has(.wrapper) .markdown-embed-content,
-.canvas-node:has(.wrapper) .markdown-preview-view {
+.canvas-node:has(.combined-habits-wrapper) .markdown-embed-content,
+.canvas-node:has(.wrapper) .markdown-preview-view,
+.canvas-node:has(.combined-habits-wrapper) .markdown-preview-view {
     scrollbar-width: none !important; /* Firefox fallback */
-    overflow: hidden !important; 
+    overflow: hidden !important;
 }
 
 /* 3. Hide label of inserted note ONLY for the tracker cards */
-.canvas-node:has(.wrapper) .canvas-node-label { 
-    display: none !important; 
+.canvas-node:has(.wrapper) .canvas-node-label,
+.canvas-node:has(.combined-habits-wrapper) .canvas-node-label {
+    display: none !important;
 }
