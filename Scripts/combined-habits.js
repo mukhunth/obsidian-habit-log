@@ -4,6 +4,21 @@
 const DateTime = dv.luxon.DateTime;
 const today = DateTime.now().startOf('day');
 
+let globalConfig = {};
+try {
+    const configPath = input.configPath || "HabitsConfig.md";
+    const file = app.vault.getAbstractFileByPath(configPath);
+    if (file) {
+        const content = await app.vault.read(file);
+        const match = content.match(/```json\r?\n([\s\S]*?)\r?\n```/);
+        if (match) {
+            globalConfig = JSON.parse(match[1]);
+        }
+    }
+} catch (e) {
+    console.warn("Could not load global habit config.", e);
+}
+
 const CONFIG = Object.assign({
     folder: "",
     month: today.toFormat("yyyy-MM"),
@@ -11,8 +26,21 @@ const CONFIG = Object.assign({
     defaultColor: "var(--interactive-accent)"
 }, input);
 
-if (!CONFIG.habits || !Array.isArray(CONFIG.habits)) {
-    dv.paragraph("No habits configured for combined view.");
+if (input.defaultColor === "theme") {
+    input.defaultColor = "var(--interactive-accent)";
+}
+const uniformColorOverride = input.defaultColor;
+
+const resolvedHabits = CONFIG.habits.map(h => {
+    let local = typeof h === "string" ? { property: h } : h;
+    let global = globalConfig[local.property] || {};
+    let merged = Object.assign({}, global, local);
+    if (merged.color === "theme") merged.color = "var(--interactive-accent)";
+    return merged;
+});
+
+if (!resolvedHabits || !Array.isArray(resolvedHabits) || resolvedHabits.length === 0) {
+    dv.paragraph("⚠️ No habits configured for combined view.");
     return;
 }
 
@@ -171,15 +199,15 @@ for (let i = 1; i <= daysInMonth; i++) {
 }
 
 // Habit rows
-CONFIG.habits.forEach((habit, hIndex) => {
+resolvedHabits.forEach((habit, hIndex) => {
     const rowHeader = document.createElement("div");
     rowHeader.className = "ch-row-header";
     rowHeader.textContent = habit.title || habit.property;
-    const isLastRow = hIndex === CONFIG.habits.length - 1;
+    const isLastRow = hIndex === resolvedHabits.length - 1;
     if (isLastRow) rowHeader.style.borderBottom = "none";
     gridEl.appendChild(rowHeader);
 
-    const hColor = habit.color || CONFIG.defaultColor;
+    const hColor = uniformColorOverride || habit.color || "var(--interactive-accent)";
 
     for (let i = 1; i <= daysInMonth; i++) {
         const d = targetMonth.set({ day: i });

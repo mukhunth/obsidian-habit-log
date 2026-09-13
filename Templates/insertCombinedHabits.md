@@ -1,27 +1,20 @@
 ```dataviewjs
 await dv.view("Scripts/combined-habits", {
     // === OPTIONAL SETTINGS ===
-    // folder: "",          // Defaults to Daily Notes plugin folder or vault root
-    // month: "2023-10",    // Defaults to the current month
+    // configPath: "",       // Defaults to "HabitsConfig.md" in vault root
+    // folder: "",           // Defaults to Daily Notes plugin folder
+    // month: "2025-01",     // Defaults to the current month
+    // defaultColor: "theme",// Master uniform override for the whole grid
 
-    // === HABITS CONFIG ===
+    // === HABITS ===
+    // Pass as strings to inherit all settings from global config,
+    // or as objects to override specific properties locally
     habits: [
-        {
-            property: "habit1",
-            title: "Habit 1",
-            color: "#ff5252"
-        },
-        {
-            property: "habit2",
-            title: "Habit 2 (Inverted)",
-            inverse: true,
-            startDate: "YYYY-MM-DD", // Required for inverted habits! Format: YYYY-MM-DD
-            color: "#4caf50"
-        },
-        {
-            property: "habit3",
-            title: "Habit 3"         // Uses vault's default theme accent color
-        }
+        "habit1",
+        "habit2",
+        "habit3",
+        // Example of a local override:
+        // { property: "habit3", title: "Read (Local Override)", color: "theme" }
     ]
 });
 ```

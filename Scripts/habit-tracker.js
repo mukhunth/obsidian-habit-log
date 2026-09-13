@@ -1,23 +1,44 @@
 // =============================================================================
-// 1. CONFIGURATION (Passed in from dv.view)
+// 1. CONFIGURATION
 // =============================================================================
+let globalConfig = {};
+try {
+    const configPath = input.configPath || "HabitsConfig.md";
+    const file = app.vault.getAbstractFileByPath(configPath);
+    if (file) {
+        const content = await app.vault.read(file);
+        const match = content.match(/```json\r?\n([\s\S]*?)\r?\n```/);
+        if (match) {
+            globalConfig = JSON.parse(match[1]);
+        }
+    }
+} catch (e) {
+    console.warn("Could not load global habit config.", e);
+}
+
+const habitGlobal = input.property && globalConfig[input.property] ? globalConfig[input.property] : {};
+
 const CONFIG = Object.assign({
     folder: "",
-    trackingEnd: null,
+    endDate: null,
     inverse: false,
     color: "var(--interactive-accent)",
     view: "month",
     showStreakLines: false,
     maxWidth: "100%"
-}, input);
+}, habitGlobal, input);
+
+if (CONFIG.color === "theme") {
+    CONFIG.color = "var(--interactive-accent)";
+}
 
 // =============================================================================
 // 2. DATA ENGINE & HELPER FUNCTIONS
 // =============================================================================
 const DateTime = dv.luxon.DateTime;
 const today = DateTime.now().startOf('day');
-const start = DateTime.fromISO(CONFIG.trackingStart).startOf('day');
-const end = CONFIG.trackingEnd ? DateTime.fromISO(CONFIG.trackingEnd).startOf('day') : today;
+const start = DateTime.fromISO(CONFIG.startDate).startOf('day');
+const end = CONFIG.endDate ? DateTime.fromISO(CONFIG.endDate).startOf('day') : today;
 const trackLimit = end < today ? end : today;
 
 const pages = dv.pages().where(p =>
