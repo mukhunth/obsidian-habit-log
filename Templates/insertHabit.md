@@ -1,10 +1,10 @@
 ```dataviewjs
-await dv.view("Scripts/habit-tracker", {
+await dv.view("Scripts/habit-log", {
     // === REQUIRED ===
     property: "habit1",      // Property name to track (e.g. habit1, habit2, habit3)
 
     // === OPTIONAL SETTINGS (Overrides settings in the global config file) ===
-    // configPath: "",      // Defaults to "HabitsConfig.md" in vault root
+    // configPath: "",      // Defaults to "LogIndex.md" in vault root
     // folder: "",          // Defaults to Daily Notes plugin folder
     // startDate: "",       // (Required for stats & inverse) Format: YYYY-MM-DD
     // endDate: "",         // Defaults to today

@@ -1,5 +1,5 @@
 ```dataviewjs
-await dv.view("Scripts/habit-tracker", {
+await dv.view("Scripts/habit-log", {
     property: "habit3"
 });
 ```

@@ -33,6 +33,7 @@ This file can be re-named and moved anywhere, or even split up, just make sure t
     "color": "#0357e8",
     "folder": "DailyNotes",
     "startDate": "2025-01-01",
+    "endDate": "2026-07-31",
     "showStreakLines": true
   },
   "habit2": {

@@ -7,7 +7,8 @@
   "interfaceFontFamily": "",
   "enabledCssSnippets": [
     "hide",
-    "canvas-tweaks"
+    "canvas-tweaks",
+    "habit-log"
   ],
   "translucency": false,
   "nativeMenus": true
