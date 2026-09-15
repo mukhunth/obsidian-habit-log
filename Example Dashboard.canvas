@@ -1,9 +1,9 @@
 {
 	"nodes":[
-		{"id":"dd931bced4136a81","x":180,"y":500,"width":1060,"height":279,"type":"file","file":"Example Cards/Combined View.md"},
-		{"id":"146229d39419f80c","type":"file","file":"Example Cards/habit1-month.md","x":-360,"y":-600,"width":500,"height":680},
+		{"id":"dd931bced4136a81","type":"file","file":"Example Cards/Combined View.md","x":180,"y":500,"width":1060,"height":279},
 		{"id":"2ef737cbf5bfc1a4","type":"file","file":"Example Cards/habit2-year.md","x":180,"y":-600,"width":1060,"height":1060},
-		{"id":"1712c77f422f74ec","type":"file","file":"Example Cards/habit3-heatmap.md","x":-920,"y":120,"width":1060,"height":440}
+		{"id":"146229d39419f80c","type":"file","file":"Example Cards/habit1-month.md","x":-260,"y":-600,"width":400,"height":560},
+		{"id":"1712c77f422f74ec","type":"file","file":"Example Cards/habit3-heatmap.md","x":-920,"y":0,"width":1060,"height":420}
 	],
 	"edges":[]
 }

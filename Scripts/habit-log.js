@@ -620,6 +620,8 @@ function renderCombined() {
       }
 
       let isSuccess = habit.inverse ? !isTriggered : isTriggered;
+      let isPending = d.hasSame(today, "day") && !isTriggered;
+      if (isPending) isSuccess = false;
 
       const cellWrapper = document.createElement("div");
       cellWrapper.className = "ch-cell-wrapper";
@@ -638,12 +640,15 @@ function renderCombined() {
       if (d > today || isBeforeStart) {
         circle.classList.add("is-future");
       } else {
-        if (isSuccess) {
+        if (isPending) {
+          circle.classList.add("is-pending");
+        } else if (isSuccess) {
           circle.classList.add("is-success");
           circle.style.backgroundColor = hColor;
         } else {
           circle.classList.add("is-fail");
         }
+        // Open note on click
         circle.onclick = (e) =>
           openOrMakeNote(d, CONFIG.folder, page ? page.file : null, e);
       }

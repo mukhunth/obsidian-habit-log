@@ -17,7 +17,7 @@
   margin-bottom: 20px;
 }
 .header {
-  font-size: 1.6em;
+  font-size: 1.4em;
   font-weight: 800;
   margin: 0;
   white-space: nowrap;
@@ -30,7 +30,7 @@
   margin-bottom: 25px;
 }
 .nav-title {
-  font-size: 1.2em;
+  font-size: 1.1em;
   font-weight: 700;
   text-align: center;
   flex-grow: 1;
@@ -57,13 +57,13 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 10px 0;
+  gap: 6px 0;
   margin-bottom: 24px;
   min-width: 250px;
 }
 .col-header {
   text-align: center;
-  font-size: 0.8em;
+  font-size: 0.7em;
   font-weight: 700;
   color: var(--text-muted);
   margin-bottom: 10px;
@@ -74,17 +74,17 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 50px;
+  height: 36px;
   cursor: pointer;
 }
 .circle {
-  width: 46px;
-  height: 46px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 1em;
+  font-size: 0.9em;
   font-weight: 600;
   z-index: 2;
   position: relative;
@@ -192,7 +192,7 @@
   padding-top: 1px;
 }
 .heatmap-day-lbl {
-  font-size: 0.65em;
+  font-size: 0.55em;
   color: var(--text-muted);
   line-height: 14px;
   text-align: right;
@@ -241,7 +241,7 @@
 .stats-panel {
   background: var(--background-secondary);
   border-radius: 10px;
-  padding: 15px 10px;
+  padding: 12px 8px;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 8px;
@@ -256,13 +256,13 @@
   justify-content: flex-start;
 }
 .stat-val {
-  font-size: 1.5em;
+  font-size: 1.2em;
   font-weight: 800;
   line-height: 1.1;
   margin-bottom: 6px;
 }
 .stat-lbl {
-  font-size: 0.65em;
+  font-size: 0.55em;
   color: var(--text-muted);
   line-height: 1.2;
   font-weight: 600;
