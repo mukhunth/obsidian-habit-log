@@ -509,6 +509,7 @@ function renderCombined() {
     {
       folder: "",
       month: today.toFormat("yyyy-MM"),
+      monthsToShow: 1,
       habits: [],
       defaultColor: "var(--interactive-accent)",
     },
@@ -538,8 +539,9 @@ function renderCombined() {
     return;
   }
 
-  const targetMonth = DateTime.fromISO(CONFIG.month + "-01").startOf("month");
-  const daysInMonth = targetMonth.daysInMonth;
+  const endTargetMonth = DateTime.fromISO(CONFIG.month + "-01").startOf("month");
+  const startTargetMonth = endTargetMonth.minus({ months: CONFIG.monthsToShow - 1 }).startOf("month");
+  const endRange = endTargetMonth.endOf("month");
 
   // ---------------------------------------------------------------------------
   // Data Engine
@@ -549,9 +551,9 @@ function renderCombined() {
     (p) =>
       p.file.day &&
       (!CONFIG.folder || p.file.folder.includes(CONFIG.folder)) &&
-      // Strictly filter for notes within the target month
-      p.file.day.year === targetMonth.year &&
-      p.file.day.month === targetMonth.month,
+      // Strictly filter for notes within the date range
+      p.file.day >= startTargetMonth &&
+      p.file.day <= endRange,
   );
 
   // Map out successes and failures for instantaneous lookup
@@ -564,103 +566,112 @@ function renderCombined() {
   // UI Renderer & CSS
   // ---------------------------------------------------------------------------
   const container = dv.el("div", "", { cls: "combined-habits-wrapper" });
-  container.style.setProperty("--days-in-month", daysInMonth);
 
-  const headerEl = document.createElement("div");
-  headerEl.className = "ch-header";
-  headerEl.textContent = targetMonth.toFormat("MMMM yyyy");
-  container.appendChild(headerEl);
+  for (let m = 0; m < CONFIG.monthsToShow; m++) {
+    const currentMonth = startTargetMonth.plus({ months: m });
+    const daysInMonth = currentMonth.daysInMonth;
 
-  const gridEl = document.createElement("div");
-  gridEl.className = "ch-grid";
+    const monthBlock = document.createElement("div");
+    if (m < CONFIG.monthsToShow - 1) monthBlock.style.marginBottom = "30px";
 
-  // Top-left empty cell
-  const topLeft = document.createElement("div");
-  topLeft.style.borderBottom = "1px solid var(--background-modifier-border)";
-  topLeft.style.borderRight = "1px solid var(--background-modifier-border)";
-  gridEl.appendChild(topLeft);
+    const headerEl = document.createElement("div");
+    headerEl.className = "ch-header";
+    headerEl.textContent = currentMonth.toFormat("MMMM yyyy");
+    monthBlock.appendChild(headerEl);
 
-  // Column headers (Days)
-  for (let i = 1; i <= daysInMonth; i++) {
-    const colHeader = document.createElement("div");
-    colHeader.className = "ch-col-header";
-    colHeader.textContent = i;
-    if (i === daysInMonth) colHeader.style.borderRight = "none";
-    gridEl.appendChild(colHeader);
-  }
+    const gridEl = document.createElement("div");
+    gridEl.className = "ch-grid";
+    gridEl.style.setProperty("--days-in-month", daysInMonth);
 
-  // Habit rows
-  resolvedHabits.forEach((habit, hIndex) => {
-    const rowHeader = document.createElement("div");
-    rowHeader.className = "ch-row-header";
-    rowHeader.textContent = habit.title || habit.property;
-    const isLastRow = hIndex === resolvedHabits.length - 1;
-    if (isLastRow) rowHeader.style.borderBottom = "none";
-    gridEl.appendChild(rowHeader);
+    // Top-left empty cell
+    const topLeft = document.createElement("div");
+    topLeft.style.borderBottom = "1px solid var(--background-modifier-border)";
+    topLeft.style.borderRight = "1px solid var(--background-modifier-border)";
+    gridEl.appendChild(topLeft);
 
-    const hColor =
-      uniformColorOverride || habit.color || "var(--interactive-accent)";
-
+    // Column headers (Days)
     for (let i = 1; i <= daysInMonth; i++) {
-      const d = targetMonth.set({ day: i });
-      const dateKey = d.toFormat("yyyy-MM-dd");
-
-      let isTriggered = false;
-      const page = noteMap.get(dateKey);
-
-      if (page) {
-        const rawVal = page[habit.property];
-        if (
-          rawVal === true ||
-          String(rawVal).toLowerCase() === "true" ||
-          (typeof rawVal === "number" && rawVal > 0)
-        ) {
-          isTriggered = true;
-        }
-      }
-
-      let isSuccess = habit.inverse ? !isTriggered : isTriggered;
-      let isPending = d.hasSame(today, "day") && !isTriggered;
-      if (isPending) isSuccess = false;
-
-      const cellWrapper = document.createElement("div");
-      cellWrapper.className = "ch-cell-wrapper";
-      if (i === daysInMonth) cellWrapper.style.borderRight = "none";
-      if (isLastRow) cellWrapper.style.borderBottom = "none";
-
-      const circle = document.createElement("div");
-      circle.className = "ch-circle";
-      circle.title = `${dateKey}: ${habit.title || habit.property}`;
-
-      const habitStart = habit.startDate
-        ? DateTime.fromISO(habit.startDate).startOf("day")
-        : null;
-      const isBeforeStart = habitStart && d < habitStart;
-
-      if (d > today || isBeforeStart) {
-        circle.classList.add("is-future");
-      } else {
-        if (isPending) {
-          circle.classList.add("is-pending");
-        } else if (isSuccess) {
-          circle.classList.add("is-success");
-          circle.style.backgroundColor = hColor;
-        } else {
-          circle.classList.add("is-fail");
-        }
-        // Open note on click
-        circle.onclick = (e) =>
-          openOrMakeNote(d, CONFIG.folder, page ? page.file : null, e);
-      }
-
-      if (d.hasSame(today, "day")) {
-        circle.classList.add("is-today");
-      }
-
-      cellWrapper.appendChild(circle);
-      gridEl.appendChild(cellWrapper);
+      const colHeader = document.createElement("div");
+      colHeader.className = "ch-col-header";
+      colHeader.textContent = i;
+      if (i === daysInMonth) colHeader.style.borderRight = "none";
+      gridEl.appendChild(colHeader);
     }
-  });
 
-  container.appendChild(gridEl);
+    // Habit rows
+    resolvedHabits.forEach((habit, hIndex) => {
+      const rowHeader = document.createElement("div");
+      rowHeader.className = "ch-row-header";
+      rowHeader.textContent = habit.title || habit.property;
+      const isLastRow = hIndex === resolvedHabits.length - 1;
+      if (isLastRow) rowHeader.style.borderBottom = "none";
+      gridEl.appendChild(rowHeader);
+
+      const hColor =
+        uniformColorOverride || habit.color || "var(--interactive-accent)";
+
+      for (let i = 1; i <= daysInMonth; i++) {
+        const d = currentMonth.set({ day: i });
+        const dateKey = d.toFormat("yyyy-MM-dd");
+
+        let isTriggered = false;
+        const page = noteMap.get(dateKey);
+
+        if (page) {
+          const rawVal = page[habit.property];
+          if (
+            rawVal === true ||
+            String(rawVal).toLowerCase() === "true" ||
+            (typeof rawVal === "number" && rawVal > 0)
+          ) {
+            isTriggered = true;
+          }
+        }
+
+        let isSuccess = habit.inverse ? !isTriggered : isTriggered;
+        let isPending = d.hasSame(today, "day") && !isTriggered;
+        if (isPending) isSuccess = false;
+
+        const cellWrapper = document.createElement("div");
+        cellWrapper.className = "ch-cell-wrapper";
+        if (i === daysInMonth) cellWrapper.style.borderRight = "none";
+        if (isLastRow) cellWrapper.style.borderBottom = "none";
+
+        const circle = document.createElement("div");
+        circle.className = "ch-circle";
+        circle.title = `${dateKey}: ${habit.title || habit.property}`;
+
+        const habitStart = habit.startDate
+          ? DateTime.fromISO(habit.startDate).startOf("day")
+          : null;
+        const isBeforeStart = habitStart && d < habitStart;
+
+        if (d > today || isBeforeStart) {
+          circle.classList.add("is-future");
+        } else {
+          if (isPending) {
+            circle.classList.add("is-pending");
+          } else if (isSuccess) {
+            circle.classList.add("is-success");
+            circle.style.backgroundColor = hColor;
+          } else {
+            circle.classList.add("is-fail");
+          }
+          // Open note on click
+          circle.onclick = (e) =>
+            openOrMakeNote(d, CONFIG.folder, page ? page.file : null, e);
+        }
+
+        if (d.hasSame(today, "day")) {
+          circle.classList.add("is-today");
+        }
+
+        cellWrapper.appendChild(circle);
+        gridEl.appendChild(cellWrapper);
+      }
+    });
+
+    monthBlock.appendChild(gridEl);
+    container.appendChild(monthBlock);
+  }
 }

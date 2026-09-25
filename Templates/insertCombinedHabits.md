@@ -3,7 +3,8 @@ await dv.view("Scripts/habit-log", {
     // === OPTIONAL SETTINGS ===
     // configPath: "",       // Defaults to "LogIndex.md" in vault root
     // folder: "",           // Defaults to Daily Notes plugin folder
-    // month: "2025-01",     // Defaults to the current month
+    // month: "2025-01",     // The target ending month (defaults to current month)
+    // monthsToShow: 1,      // Number of previous months to stack (e.g. 3 for a quarter)
     // defaultColor: "theme",// Master uniform override for the whole grid
 
     // === HABITS ===
