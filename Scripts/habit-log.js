@@ -508,8 +508,11 @@ function renderCombined() {
   const CONFIG = Object.assign(
     {
       folder: "",
+      view: "monthly",
       month: today.toFormat("yyyy-MM"),
-      monthsToShow: 1,
+      monthsToShow: input.view === "sparkline" ? 12 : 1,
+      monthsPerWrap: 3,
+      compact: false,
       habits: [],
       defaultColor: "var(--interactive-accent)",
     },
@@ -567,111 +570,249 @@ function renderCombined() {
   // ---------------------------------------------------------------------------
   const container = dv.el("div", "", { cls: "combined-habits-wrapper" });
 
-  for (let m = 0; m < CONFIG.monthsToShow; m++) {
-    const currentMonth = startTargetMonth.plus({ months: m });
-    const daysInMonth = currentMonth.daysInMonth;
+  if (CONFIG.view === "sparkline") {
+    // === SPARKLINE VIEW ===
+    const wraps = Math.ceil(CONFIG.monthsToShow / CONFIG.monthsPerWrap);
 
-    const monthBlock = document.createElement("div");
-    if (m < CONFIG.monthsToShow - 1) monthBlock.style.marginBottom = "30px";
+    for (let w = 0; w < wraps; w++) {
+      const wrapStartIdx = w * CONFIG.monthsPerWrap;
+      const wrapEndIdx = Math.min(wrapStartIdx + CONFIG.monthsPerWrap, CONFIG.monthsToShow);
+      
+      const wrapStartMonth = startTargetMonth.plus({ months: wrapStartIdx });
+      const wrapEndMonth = startTargetMonth.plus({ months: wrapEndIdx - 1 });
+      
+      const wrapBlock = document.createElement("div");
+      wrapBlock.className = "sparkline-wrap-block";
 
-    const headerEl = document.createElement("div");
-    headerEl.className = "ch-header";
-    headerEl.textContent = currentMonth.toFormat("MMMM yyyy");
-    monthBlock.appendChild(headerEl);
+      const titleEl = document.createElement("div");
+      titleEl.className = "spark-wrap-title";
+      if (wrapStartIdx === wrapEndIdx - 1) {
+        titleEl.textContent = wrapStartMonth.toFormat("MMM yyyy");
+      } else {
+        titleEl.textContent = wrapStartMonth.toFormat("MMM") + " - " + wrapEndMonth.toFormat("MMM yyyy");
+      }
+      wrapBlock.appendChild(titleEl);
+
+      const wrapperEl = document.createElement("div");
+      wrapperEl.className = "sparkline-wrapper";
+
+      resolvedHabits.forEach((habit) => {
+        // COMPACT LOGIC: Hide habit if it is entirely outside the wrap bounds
+        if (CONFIG.compact) {
+          const wStart = wrapStartMonth.startOf("month");
+          const wEnd = wrapEndMonth.endOf("month");
+          
+          const hStart = habit.startDate ? DateTime.fromISO(habit.startDate).startOf("day") : null;
+          const hEnd = habit.endDate ? DateTime.fromISO(habit.endDate).startOf("day") : null;
+          
+          if (hStart && hStart > wEnd) return; // Starts after this wrap ends
+          if (hEnd && hEnd < wStart) return;   // Ends before this wrap starts
+        }
+
+        const hColor = uniformColorOverride || habit.color || "var(--interactive-accent)";
+        const rowEl = document.createElement("div");
+        rowEl.className = "spark-row";
+
+        const rowTitle = document.createElement("div");
+        rowTitle.className = "spark-title";
+        rowTitle.textContent = habit.title || habit.property;
+        rowTitle.title = habit.title || habit.property;
+        rowEl.appendChild(rowTitle);
+
+        for (let m = wrapStartIdx; m < wrapEndIdx; m++) {
+          const currentMonth = startTargetMonth.plus({ months: m });
+          const daysInMonth = currentMonth.daysInMonth;
+          
+          const chunkEl = document.createElement("div");
+          chunkEl.className = "spark-chunk";
+
+          for (let i = 1; i <= daysInMonth; i++) {
+            const d = currentMonth.set({ day: i });
+            const dateKey = d.toFormat("yyyy-MM-dd");
+
+            let isTriggered = false;
+            const page = noteMap.get(dateKey);
+
+            if (page) {
+              const rawVal = page[habit.property];
+              if (
+                rawVal === true ||
+                String(rawVal).toLowerCase() === "true" ||
+                (typeof rawVal === "number" && rawVal > 0)
+              ) {
+                isTriggered = true;
+              }
+            }
+
+            let isSuccess = habit.inverse ? !isTriggered : isTriggered;
+            let isPending = d.hasSame(today, "day") && !isTriggered;
+            if (isPending) isSuccess = false;
+
+            const dot = document.createElement("div");
+            dot.className = "spark-dot";
+            dot.title = `${dateKey}: ${habit.title || habit.property}`;
+
+            const habitStart = habit.startDate
+              ? DateTime.fromISO(habit.startDate).startOf("day")
+              : null;
+            const habitEnd = habit.endDate
+              ? DateTime.fromISO(habit.endDate).startOf("day")
+              : null;
+            const isBeforeStart = habitStart && d < habitStart;
+            const isAfterEnd = habitEnd && d > habitEnd;
+
+            if (d > today || isBeforeStart || isAfterEnd) {
+              dot.style.opacity = "0.05";
+              dot.style.cursor = "default";
+              dot.style.pointerEvents = "none";
+            } else {
+              if (isPending) {
+                // Pending is neutral default dot
+              } else if (isSuccess) {
+                dot.classList.add("is-success");
+                dot.style.backgroundColor = hColor;
+              } else {
+                dot.classList.add("is-fail");
+              }
+              dot.onclick = (e) =>
+                openOrMakeNote(d, CONFIG.folder, page ? page.file : null, e);
+            }
+
+            if (d.hasSame(today, "day")) {
+              dot.style.boxShadow = "0 0 0 1px var(--text-normal)";
+            }
+
+            chunkEl.appendChild(dot);
+          }
+          rowEl.appendChild(chunkEl);
+        }
+        wrapperEl.appendChild(rowEl);
+      });
+
+      wrapBlock.appendChild(wrapperEl);
+      container.appendChild(wrapBlock);
+    }
+  } else {
+    // === MONTHLY MEGA-GRID VIEW ===
+    const isMega = CONFIG.monthsToShow > 1;
+    const gridCols = isMega ? 31 : endRange.daysInMonth;
 
     const gridEl = document.createElement("div");
     gridEl.className = "ch-grid";
-    gridEl.style.setProperty("--days-in-month", daysInMonth);
+    gridEl.style.setProperty("--days-in-month", gridCols);
 
-    // Top-left empty cell
+    if (!isMega) {
+      const headerEl = document.createElement("div");
+      headerEl.className = "ch-header";
+      headerEl.textContent = endRange.toFormat("MMMM yyyy");
+      container.appendChild(headerEl);
+    }
+
     const topLeft = document.createElement("div");
     topLeft.style.borderBottom = "1px solid var(--background-modifier-border)";
     topLeft.style.borderRight = "1px solid var(--background-modifier-border)";
     gridEl.appendChild(topLeft);
 
-    // Column headers (Days)
-    for (let i = 1; i <= daysInMonth; i++) {
+    for (let i = 1; i <= gridCols; i++) {
       const colHeader = document.createElement("div");
       colHeader.className = "ch-col-header";
       colHeader.textContent = i;
-      if (i === daysInMonth) colHeader.style.borderRight = "none";
+      if (i === gridCols) colHeader.style.borderRight = "none";
       gridEl.appendChild(colHeader);
     }
 
-    // Habit rows
-    resolvedHabits.forEach((habit, hIndex) => {
-      const rowHeader = document.createElement("div");
-      rowHeader.className = "ch-row-header";
-      rowHeader.textContent = habit.title || habit.property;
-      const isLastRow = hIndex === resolvedHabits.length - 1;
-      if (isLastRow) rowHeader.style.borderBottom = "none";
-      gridEl.appendChild(rowHeader);
+    for (let m = 0; m < CONFIG.monthsToShow; m++) {
+      const currentMonth = startTargetMonth.plus({ months: m });
+      const daysInMonth = currentMonth.daysInMonth;
 
-      const hColor =
-        uniformColorOverride || habit.color || "var(--interactive-accent)";
-
-      for (let i = 1; i <= daysInMonth; i++) {
-        const d = currentMonth.set({ day: i });
-        const dateKey = d.toFormat("yyyy-MM-dd");
-
-        let isTriggered = false;
-        const page = noteMap.get(dateKey);
-
-        if (page) {
-          const rawVal = page[habit.property];
-          if (
-            rawVal === true ||
-            String(rawVal).toLowerCase() === "true" ||
-            (typeof rawVal === "number" && rawVal > 0)
-          ) {
-            isTriggered = true;
-          }
-        }
-
-        let isSuccess = habit.inverse ? !isTriggered : isTriggered;
-        let isPending = d.hasSame(today, "day") && !isTriggered;
-        if (isPending) isSuccess = false;
-
-        const cellWrapper = document.createElement("div");
-        cellWrapper.className = "ch-cell-wrapper";
-        if (i === daysInMonth) cellWrapper.style.borderRight = "none";
-        if (isLastRow) cellWrapper.style.borderBottom = "none";
-
-        const circle = document.createElement("div");
-        circle.className = "ch-circle";
-        circle.title = `${dateKey}: ${habit.title || habit.property}`;
-
-        const habitStart = habit.startDate
-          ? DateTime.fromISO(habit.startDate).startOf("day")
-          : null;
-        const isBeforeStart = habitStart && d < habitStart;
-
-        if (d > today || isBeforeStart) {
-          circle.classList.add("is-future");
-        } else {
-          if (isPending) {
-            circle.classList.add("is-pending");
-          } else if (isSuccess) {
-            circle.classList.add("is-success");
-            circle.style.backgroundColor = hColor;
-          } else {
-            circle.classList.add("is-fail");
-          }
-          // Open note on click
-          circle.onclick = (e) =>
-            openOrMakeNote(d, CONFIG.folder, page ? page.file : null, e);
-        }
-
-        if (d.hasSame(today, "day")) {
-          circle.classList.add("is-today");
-        }
-
-        cellWrapper.appendChild(circle);
-        gridEl.appendChild(cellWrapper);
+      if (isMega) {
+        const separator = document.createElement("div");
+        separator.className = "ch-month-separator";
+        separator.textContent = currentMonth.toFormat("MMMM yyyy");
+        gridEl.appendChild(separator);
       }
-    });
 
-    monthBlock.appendChild(gridEl);
-    container.appendChild(monthBlock);
+      resolvedHabits.forEach((habit, hIndex) => {
+        const rowHeader = document.createElement("div");
+        rowHeader.className = "ch-row-header";
+        rowHeader.textContent = habit.title || habit.property;
+        const isLastRow = (m === CONFIG.monthsToShow - 1) && (hIndex === resolvedHabits.length - 1);
+        if (isLastRow) rowHeader.style.borderBottom = "none";
+        gridEl.appendChild(rowHeader);
+
+        const hColor = uniformColorOverride || habit.color || "var(--interactive-accent)";
+
+        for (let i = 1; i <= gridCols; i++) {
+          const cellWrapper = document.createElement("div");
+          cellWrapper.className = "ch-cell-wrapper";
+          if (i === gridCols) cellWrapper.style.borderRight = "none";
+          if (isLastRow) cellWrapper.style.borderBottom = "none";
+
+          if (i > daysInMonth) {
+            cellWrapper.classList.add("is-empty");
+            gridEl.appendChild(cellWrapper);
+            continue;
+          }
+
+          const d = currentMonth.set({ day: i });
+          const dateKey = d.toFormat("yyyy-MM-dd");
+
+          let isTriggered = false;
+          const page = noteMap.get(dateKey);
+
+          if (page) {
+            const rawVal = page[habit.property];
+            if (
+              rawVal === true ||
+              String(rawVal).toLowerCase() === "true" ||
+              (typeof rawVal === "number" && rawVal > 0)
+            ) {
+              isTriggered = true;
+            }
+          }
+
+          let isSuccess = habit.inverse ? !isTriggered : isTriggered;
+          let isPending = d.hasSame(today, "day") && !isTriggered;
+          if (isPending) isSuccess = false;
+
+          const circle = document.createElement("div");
+          circle.className = "ch-circle";
+          circle.title = `${dateKey}: ${habit.title || habit.property}`;
+
+          const habitStart = habit.startDate
+            ? DateTime.fromISO(habit.startDate).startOf("day")
+            : null;
+          const habitEnd = habit.endDate
+            ? DateTime.fromISO(habit.endDate).startOf("day")
+            : null;
+          const isBeforeStart = habitStart && d < habitStart;
+          const isAfterEnd = habitEnd && d > habitEnd;
+
+          if (d > today || isBeforeStart || isAfterEnd) {
+            circle.classList.add("is-future");
+          } else {
+            if (isPending) {
+              circle.classList.add("is-pending");
+            } else if (isSuccess) {
+              circle.classList.add("is-success");
+              circle.style.backgroundColor = hColor;
+            } else {
+              circle.classList.add("is-fail");
+            }
+            // Open note on click
+            circle.onclick = (e) =>
+              openOrMakeNote(d, CONFIG.folder, page ? page.file : null, e);
+          }
+
+          if (d.hasSame(today, "day")) {
+            circle.classList.add("is-today");
+          }
+
+          cellWrapper.appendChild(circle);
+          gridEl.appendChild(cellWrapper);
+        }
+      });
+    }
+    container.appendChild(gridEl);
   }
 }

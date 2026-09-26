@@ -195,7 +195,7 @@
   font-size: 0.55em;
   color: var(--text-muted);
   line-height: 14px;
-  text-align: right;
+  text-align: center;
   min-width: 20px;
 }
 
@@ -292,11 +292,13 @@
   padding: 10px 20px;
 }
 .ch-header {
-  font-size: 1.4em;
+  font-size: 0.85em;
   font-weight: 700;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   text-align: center;
-  color: var(--text-normal);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 .ch-grid {
   display: grid;
@@ -357,6 +359,90 @@
 }
 .ch-circle.is-today {
   box-shadow: 0 0 0 2px var(--text-normal);
+}
+
+
+
+/* =========================================
+   COMBINED MEGA-GRID
+   ========================================= */
+.ch-month-separator {
+  grid-column: 1 / -1;
+  background: var(--background-modifier-border);
+  color: var(--text-normal);
+  font-size: 0.75em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: right;
+  padding: 4px 10px;
+  opacity: 0.8;
+}
+.ch-cell-wrapper.is-empty {
+  background: transparent;
+  pointer-events: none;
+}
+.ch-cell-wrapper.is-empty .ch-circle {
+  display: none;
+}
+
+/* =========================================
+   COMBINED SPARKLINE
+   ========================================= */
+.sparkline-wrap-block {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px dashed var(--background-modifier-border);
+}
+.sparkline-wrap-block:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+.spark-wrap-title {
+  font-size: 0.75em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+.spark-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 6px;
+}
+.spark-title {
+  width: 100px;
+  font-size: 0.85em;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+}
+.spark-chunk {
+  display: flex;
+  gap: 2px;
+  margin-right: 8px; /* Gap between months */
+}
+.spark-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  background: var(--background-modifier-border);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.spark-dot:hover {
+  transform: scale(1.4);
+}
+.spark-dot.is-success {
+  background: var(--color);
+}
+.spark-dot.is-fail {
+  opacity: 0.4;
 }
 
 /* =========================================
